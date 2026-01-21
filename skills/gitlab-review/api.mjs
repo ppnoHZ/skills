@@ -259,14 +259,16 @@ export class GitLabReviewService {
     }
 
     formatMessage(c, fileLineUrl, isFallback) {
-        let msg = `**Issue:** ${c.description}
+        let msg = `**Issue:**
+${c.description}
 ${c.suggestion ? `**Suggestion:**
 \`\`\`vue
 ${c.suggestion}
 \`\`\`` : ''}`;
 
         if (isFallback) {
-            msg = `**File:** [${c.file} (Line ${c.line})](${fileLineUrl})\n` + msg + 
+            msg = `**File:**
+[${c.file} (Line ${c.line})](${fileLineUrl})\n` + msg + 
             `\n\n---\n*💡 此行不在本次 MR 的直接 Diff 范围内，点击上方文件名链接可在文件浏览器中查看对应位置。*`;
         }
         return msg;

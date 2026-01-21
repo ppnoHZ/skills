@@ -1,12 +1,45 @@
+---
+name: GitLab Review Sync Skill
+description:  -用户一般会提问：review [MR_IID]
+- 当用户没有提供 MR_IID 时，脚本会尝试自动检测当前项目、分支及其关联的 Open MR。
+- 对gitlab merge request 提交的代码进行review 并将 GitHub Copilot 生成的 Review 结果同步到指定的 GitLab Merge Request。
+
+## Review 结果 JSON 格式要求
+为了确保脚本能够正确解析并发表评论，生成的 JSON 必须是一个对象数组，且**严格遵循以下字段名称**：
+
+| 字段名 | 类型 | 必填 | 描述 |
+| :--- | :--- | :--- | :--- |
+| `file` | `string` | 是 | 文件的相对路径（如 `packages/bpm-web/src/App.vue`）。 |
+| `line` | `number` | 是 | 评论对应的代码行号（1-based）。 |
+| `description` | `string` | 是 | **评审内容**。必须使用该字段存储评论，支持 Markdown。请确保使用中文。 |
+| `suggestion` | `string` | 否 | 代码修改建议。如果提供，将以 Vue 代码块形式展示。 |
+
+### 示例格式
+```json
+[
+  {
+    "file": "packages/bpm-web/src/api/qmp/dataassets.ts",
+    "line": 139,
+    "description": "### 🐞 参数不匹配\n发现 `deleteMobileUploadFile` API 的参数定义与调用处不一致，请核对后端接口文档。",
+    "suggestion": "export const deleteMobileUploadFile = (params: { dataAssetId: string }) => { ... };"
+  }
+]
+```
+
+---
+
 # GitLab Review Sync Skill
 
 ## 描述
-将 GitHub Copilot 生成的 Review 结果（JSON 格式）同步到指定的 GitLab Merge Request 的代码行内评论区。
+- 用户一般会提问：review [MR_IID]
+- 当用户没有提供 MR_IID 时，脚本会尝试自动检测当前项目、分支及其关联的 Open MR。
+- 对gitlab merge request 提交的代码进行review 并将 GitHub Copilot 生成的 Review 结果（JSON 格式）同步到指定的 GitLab Merge Request 的代码行内评论区。
 
 **Review 指南：**
 1. **中文评论**：评论请务必使用中文。
 2. **全面审查**：请务必对整个文件的内容进行 review，而不仅仅是 diff 部分。
 3. **代码规范**：在评审 Vue 组件时，请严格参考 [.github/skills/gitlab-review/vue.md](vue.md) 中定义的编码规范（如强制使用 `defineModel` 等）。
+
 
 ## 使用方法
 1. 确保环境变量 `GITLAB_TOKEN` 已设置（或在 `run.mjs` 中配置）。

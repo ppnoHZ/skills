@@ -63,10 +63,17 @@ async function run() {
 
     let comments = [];
     if (rawData) {
-        try {
-            comments = JSON.parse(rawData);
-        } catch (e) {
-            throw new Error(`Failed to parse comments JSON: ${e.message}`);
+        if (rawData.endsWith('.json')) {
+            // 如果传入的是文件名，则读取文件内容
+            const fs = await import('fs');
+            const content = fs.readFileSync(join(process.cwd(), rawData), 'utf8');
+            comments = JSON.parse(content);
+        } else {
+            try {
+                comments = JSON.parse(rawData);
+            } catch (e) {
+                throw new Error(`Failed to parse comments JSON: ${e.message}`);
+            }
         }
     }
 
