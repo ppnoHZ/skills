@@ -255,94 +255,6 @@ import {
 } from '@/types/enums';
 ```
 
-## Inertia.js (v0.11.1) - IMPORTANT!
-
-**This project uses OLD Inertia version** - use these imports:
-
-```typescript
-// ✅ CORRECT - Old imports
-import { Inertia } from '@inertiajs/inertia';
-import { usePage } from '@inertiajs/inertia-vue3';
-import { useForm } from '@inertiajs/inertia-vue3';
-import { Link } from '@inertiajs/inertia-vue3';
-
-// ❌ WRONG - New imports (don't exist in v0.11)
-import { router } from '@inertiajs/vue3'; // DON'T USE
-import { usePage } from '@inertiajs/vue3'; // DON'T USE
-```
-
-### Using Props vs usePage()
-
-```vue
-<script setup lang="ts">
-import { usePage } from '@inertiajs/inertia-vue3';
-
-// ✅ GOOD - Use defineProps for component-specific data
-const props = defineProps({
-  user: {
-    type: Object,
-    required: true,
-  },
-  items: {
-    type: Array,
-    required: true,
-  },
-});
-
-// ✅ GOOD - Use usePage() ONLY for global Inertia properties
-const page = usePage();
-const currentUser = page.props.value.auth.user;
-const flashMessage = page.props.value.flash.message;
-
-// ❌ BAD - Don't use usePage() for component props
-// const { user, items } = usePage().props.value; // WRONG!
-</script>
-```
-
-### Form Handling
-
-```vue
-<script setup lang="ts">
-import { useForm } from '@inertiajs/inertia-vue3';
-
-const props = defineProps({
-  user: {
-    type: Object,
-    required: true,
-  },
-});
-
-const form = useForm({
-  name: props.user.name,
-  email: props.user.email,
-});
-
-function submit() {
-  form.put(route('users.update', props.user.id), {
-    onSuccess: () => {
-      // Handle success
-    },
-    onError: () => {
-      // Handle errors
-    },
-  });
-}
-</script>
-
-<template>
-  <form @submit.prevent="submit">
-    <input v-model="form.name" />
-    <div v-if="form.errors.name" class="text-red-500">
-      {{ form.errors.name }}
-    </div>
-
-    <button type="submit" :disabled="form.processing">
-      Save
-    </button>
-  </form>
-</template>
-```
-
 ## Styling with Tailwind CSS
 
 ### Use Scoped Styles
@@ -548,7 +460,6 @@ import { ref, computed } from 'vue';
 import type { PropType } from 'vue';
 import type { User } from '@/types/generated';
 import { UserStatusEnum } from '@/types/enums';
-import { useForm } from '@inertiajs/inertia-vue3';
 import Button from '@/Components/App/Forms/Button.vue';
 import Input from '@/Components/App/Forms/Input.vue';
 
@@ -574,7 +485,8 @@ const emit = defineEmits<{
 }>();
 
 // State
-const form = useForm({
+const loading = ref(false);
+const formData = ref({
   name: props.user.name,
   email: props.user.email,
   status: props.user.status,
@@ -586,26 +498,32 @@ const isActive = computed(() => {
 });
 
 const canSubmit = computed(() => {
-  return form.name.length > 0 &&
-         form.email.length > 0 &&
-         !form.processing;
+  return formData.value.name.length > 0 &&
+         formData.value.email.length > 0 &&
+         !loading.value;
 });
 
 // Methods
-function handleSubmit(): void {
-  form.put(route('users.update', props.user.id), {
-    onSuccess: () => {
-      isModalOpen.value = false;
-      emit('saved', form.data());
-    },
-    onError: () => {
-      console.error('Failed to save user');
-    },
-  });
+async function handleSubmit(): Promise<void> {
+  try {
+    loading.value = true;
+    // Example API call
+    // await api.users.update(props.user.id, formData.value);
+    emit('saved', { ...props.user, ...formData.value });
+    isModalOpen.value = false;
+  } catch (error) {
+    console.error('Failed to save user');
+  } finally {
+    loading.value = false;
+  }
 }
 
 function handleCancel(): void {
-  form.reset();
+  formData.value = {
+    name: props.user.name,
+    email: props.user.email,
+    status: props.user.status,
+  };
   isModalOpen.value = false;
   emit('cancelled');
 }
@@ -637,14 +555,10 @@ function handleCancel(): void {
           Name
         </label>
         <Input
-          v-model="form.name"
+          v-model="formData.name"
           type="text"
           :disabled="!isEditable"
-          :error="form.errors.name"
         />
-        <div v-if="form.errors.name" class="mt-1 text-sm text-red-600">
-          {{ form.errors.name }}
-        </div>
       </div>
 
       <!-- Email Input -->
@@ -653,14 +567,10 @@ function handleCancel(): void {
           Email
         </label>
         <Input
-          v-model="form.email"
+          v-model="formData.email"
           type="email"
           :disabled="!isEditable"
-          :error="form.errors.email"
         />
-        <div v-if="form.errors.email" class="mt-1 text-sm text-red-600">
-          {{ form.errors.email }}
-        </div>
       </div>
 
       <!-- Actions -->
@@ -676,7 +586,7 @@ function handleCancel(): void {
           type="submit"
           variant="primary"
           :disabled="!canSubmit"
-          :loading="form.processing"
+          :loading="loading"
         >
           Save Changes
         </Button>
@@ -708,17 +618,7 @@ const props = defineProps({
 });
 </script>
 
-<!-- 3. Wrong Inertia imports -->
-<script setup lang="ts">
-import { router } from '@inertiajs/vue3'; // Wrong version!
-</script>
-
-<!-- 4. Using usePage() for component props -->
-<script setup lang="ts">
-const { user, items } = usePage().props.value; // Wrong!
-</script>
-
-<!-- 5. No scoped styles -->
+<!-- 3. No scoped styles -->
 <style>  <!-- Not scoped! -->
 .my-class { }
 </style>
@@ -743,21 +643,7 @@ const props = defineProps({
 });
 </script>
 
-<!-- 3. Correct Inertia imports -->
-<script setup lang="ts">
-import { Inertia } from '@inertiajs/inertia';
-import { usePage } from '@inertiajs/inertia-vue3';
-</script>
-
-<!-- 4. Use defineProps for component data -->
-<script setup lang="ts">
-const props = defineProps({
-  user: Object as PropType<User>,
-  items: Array as PropType<Item[]>,
-});
-</script>
-
-<!-- 5. Use scoped styles -->
+<!-- 3. Use scoped styles -->
 <style scoped>
 .my-class { }
 </style>
@@ -771,7 +657,6 @@ Before considering a component complete, verify:
 - ✅ Uses `defineModel()` for two-way binding (NOT modelValue prop)
 - ✅ Follows script → template → style order
 - ✅ Props use full object syntax with PropType for complex types
-- ✅ Uses correct Inertia v0 imports
 - ✅ Has `<style scoped>` if styles are needed
 - ✅ Groups related Tailwind classes logically
 - ✅ Uses early exit patterns to reduce nesting
