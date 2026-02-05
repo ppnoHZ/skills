@@ -134,6 +134,28 @@ const lastName = defineModel<string>('lastName');
 </template>
 ```
 
+### Template Access to refs
+
+Vue automatically unwraps `ref` values when they are referenced inside the `<template>` block, so you can **omit `.value` in templates** while still needing it inside the `<script setup>` section. Both snippets below are equivalent and valid:
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+
+const counter = ref(0);
+
+function increment(): void {
+  counter.value += 1;
+}
+</script>
+
+<template>
+  <button @click="increment">
+    {{ counter }}
+  </button>
+</template>
+```
+
 ### Usage in Parent Component
 
 ```vue
