@@ -1,8 +1,7 @@
 ---
-name: GitLab Review Sync Skill
-description:  -用户一般会提问：review [MR_IID]
-- 当用户没有提供 MR_IID 时，脚本会尝试自动检测当前项目、分支及其关联的 Open MR。
-- 对gitlab merge request 提交的代码进行review 并将 GitHub Copilot 生成的 Review 结果同步到指定的 GitLab Merge Request。- 必要时需要对整个文件进行review。
+name: gitlab-review
+description:  -用户一般会提问：review [MR_IID]，当用户没有提供 MR_IID 时，脚本会尝试自动检测当前项目、分支及其关联的 Open MR。对gitlab merge request 提交的代码进行review 并将 GitHub Copilot 生成的 Review 结果同步到指定的 GitLab Merge Request。- 必要时需要对整个文件进行review。
+---
 
 ## Review 结果 JSON 格式要求
 为了确保脚本能够正确解析并发表评论，生成的 JSON 必须是一个对象数组，且**严格遵循以下字段名称**：
@@ -36,7 +35,7 @@ description:  -用户一般会提问：review [MR_IID]
 2. **全面审查**：请务必对整个文件的内容进行 review，而不仅仅是 diff 部分。
 3. **代码规范**：在评审 Vue 组件时，请严格参考 [.github/skills/gitlab-review/vue.md](vue.md) 中定义的编码规范（如强制使用 `defineModel` 等）。
 4. **review的代码范围** 必要时需要对整个文件进行review。
-5. 同步到Gitlab之前必须先经过我的同意。
+5. 同步之前请让我选择那些可以同步到gitlab，经过我同意之后才能继续同步。
 
 
 ## 使用方法
